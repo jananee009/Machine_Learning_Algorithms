@@ -1,3 +1,3 @@
 mlalgorithms
 ============
- k means, k median, regression, naive bays, boosting, bagging, time series
+ K nearest neighbors, linear regression, C5.0 decision trees, rule based learners, naive bayes.
