@@ -1,0 +1,48 @@
+CREATE TABLE  IF NOT EXISTS loan
+(	
+	
+	loan_amnt INT,
+	funded_amnt INT,
+	funded_amnt_inv INT,
+	term CHAR(15),
+	int_rate FLOAT,
+	installment FLOAT,
+	grade CHAR(1),
+	sub_grade CHAR(2),
+	emp_length CHAR(25),
+	home_ownership CHAR(25),
+	annual_inc INT,
+	is_inc_v CHAR(30),
+	loan_status CHAR(30),
+	pymnt_plan CHAR(5),
+	addr_state CHAR(2),
+	dti FLOAT,
+	delinq_2yrs INT,
+	inq_last_6mths INT,
+	open_acc INT,
+	pub_rec INT,
+	revol_bal INT,
+	revol_util DECIMAL(10,10),
+	total_acc INT,
+	out_prncp FLOAT,
+	out_prncp_inv FLOAT,
+	total_pymnt FLOAT,
+	total_pymnt_inv FLOAT,
+	total_rec_prncp FLOAT,
+	total_rec_int FLOAT,
+	total_rec_late_fee FLOAT,
+	recoveries FLOAT,
+	collection_recovery_fee FLOAT,
+	last_pymnt_amnt FLOAT,
+	collections_12_mths_ex_med INT,
+	is_bad INT
+		
+);
+
+
+LOAD DATA INFILE '/Users/jananee009/Zananee/Projects/mlalgorithms/Loans/loan.csv'
+INTO TABLE loan 
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 rows;

@@ -1,0 +1,146 @@
+
+
+Step 1: Get the datastet. Load the dataset in to R.
+sampleDataFrame = read.csv("dataFile.csv", header=TRUE)
+
+Step 2: Explore the data. Use the following commands.
+
+# First, check the data (values, summary statistics)
+
+head(sampleDataFrame)     
+# This command fetches the first 6 rows of the data set. You can see the column headers and the data. 
+
+summary(sampleDataFrame)  
+# This command gives a summary of data contained in all the columns. We can learn which columns have categorical data and which ones have continuous data.
+# This command also tells us which columns have how many NAs.
+# This command gives us the mean, median and Interquartile ranges for each column containing quantitative data. These statistics can be used to get an idea of the 
+# distribution of the data. Using the mean, median and IQR ranges, we can find if there are outliers, skews in the data. 
+# Note: Median and IQR are better when it comes to describing the data. Like mean and standard deviation, median and IQR are used to describe the central tendency 
+# and spread of the data, but are robust against outliers and non-normal data. They have the following advantages:
+# a.	Outlier identification: IQR makes it easy to do an initial estimate of outliers by looking at values more than one-and-a-half times the IQR distance below 
+# the first quartile or above the third quartile.
+# b.	Skewness: Comparing the median to the quartile values shows whether data is skewed. For example, Group I has a high proportion of larger values, and the 
+# median is therefore closer to the third quartile than the first quartile. By contrast, the values in Group II are more evenly distributed
+# If mean > median, it means that there are very high values in the data set. This is common is distributions that are positively skewed. 
+# If mean < median, it means that there are very low values in the data set. This is common is distributions that are negatively skewed.
+
+# Second, find if the predictor values are normally distributed. Do plots.
+
+hist(sampleDataFrame$anyFeature, prob=T)   # plots a histogram of the feature values
+lines(density(sampleDataFrame$anyFeature))  # Fits normal curve to the histgram
+qqPlot(sampleDataFrame$anyFeature)   # Plots a quantile quantile plot of the feature. It helps us see how much the data distribution deviates from normal distribution
+
+boxplot(sampleDataFrame$anyFeature, ylab="anyFeature") 
+
+# Boxplots are very useful. The horizontal line inside the limits of the box represents the median. The vertical limits of the box represent the 1st quartile and 3rd # quartile. The small horizontal dash above the box is the largest observation that is less than or equal to the 3rd quartile plus 1.5 × r. The small horizontal dash 
+# below the box is the smallest observation that is greater than or equal to the 1st quartile minus 1.5 × r.
+# The circles below or above these small dashes represent observations that are extremely low (high) compared to all others, and are usually considered outliers. 
+ 
+ abline(h=mean(sampleDataFrame$anyFeature,na.rm=T), lty=2)
+ # This command draws a dashed horizontal line on the box plot representing the mean of the data set.
+
+ rug(jitter(algae$oPO4), side = 2)
+ # This plots the real values of the variable near the Y-axis, thus allowing easy spotting of outliers.
+
+ # Third, You can see the outliers in the plots and the graphs. Now, you have to identify them.
+
+ plot(sampleDataFrame$anyFeature, xlab="")
+ clicked.lines = identify(sampleDataFrame$anyFeature) # This command allows the user to click on any point on the plot and R returns the row number of the point in 
+ # the dataframe.
+ sampleDataFrame[clicked.lines ,] # This command gives the entire rows of data from the data frame. 
+
+
+ # If you want to draw boxplots for different categories of data, use the lattice package.
+ # library(lattice)
+ # bwplot(sampleDataFrame$anyFeature1 ~ sampleDataFrame$anyFeature2, data=sampleDataFrame, ylab='feature 1', xlab='feature 2')
+
+ Step 3: Prepare the data. 
+
+ Step 3a: Find the rows/columns with missing values.
+
+complete.cases(sampleDataFrame)  # this command produces a vector of Boolean values with as many elements as there are rows in the dataframe, where an element is 
+# true if the respective row is “clean” of NA values (i.e., is a complete observation). 
+
+sampleDataFrame[complete.cases(sampleDataFrame),] # This command gives us all the complete cases from the dataframe
+nrow(sampleDataFrame[complete.cases(sampleDataFrame),]) # This command gives us the number of complete cases from the dataframe.
+
+which(!complete.cases(sampleDataFrame)) # gives the row numbers of all the incomplete cases in the dataframe
+
+apply(sampleDataFrame, 1, function(x) sum(is.na(x))) # gives the count of NAs in each row of the data frame. 
+
+na.fail(sampleDataFrame)
+# This command returns the object if it does not contain any missing values, and signals an error otherwise.
+
+na.omit(sampleDataFrame)
+# This command returns the object with incomplete cases removed.
+
+Step 3b: Remove the rows that have missing values. 
+
+sampleDataFrame = sampleDataFrame[-c(rowNum1, rowNum2,...), ] 
+# If you know the row# of rows with missing values, you can remove them with this command.
+
+Step 3c: Fill the missing values with most frequent values.
+
+# If a predictor follows normal distribution, you can replace a missing value with mean. 
+# If a predictor's distribution is skewed or if it has outliers, median may be a better choice. 
+
+sampleDataFrame[is.na(sampleDataFrame$feature1),"feature1"] = median(sampleDataFrame$feature1,na.rm=T)
+# This command replaces all the missing values in the feature1 column with the median of the non missing values of feature  column.
+
+Step 3d: Filling in the missing Values by Exploring Correlations.
+
+# Find correlation between different predictors:
+cor(sampleDataFrame[,], use="complete.obs")
+symnum(cor(sampleDataFrame[,], use="complete.obs")) # This command presents the correlation matrix in a more readable format.
+
+# If you find that 2 or more features are very closely related, and if one of those features has a missing value, you can use the other feature to predict the 
+# missing feature.
+
+# Assume predictor1 and predictor2 are highly correlated and Predictor2 is missing a value that we would like to get by using predictor1.
+a = lm(predictor2 ~ predictor1, data=sampleDataFrame)
+
+# You will get the coefficient and constant values. Using these you can predict the missing value of predictor2.
+missingValueInPredictor2Column = constant + coeff* Correspondingpredictor1Value
+
+Step 3e: Filling in the Unknown Values by Exploring Similari-ties between Cases
+
+# Use the similarities (Euclidean Distances) between the rows (observations) to fill in the unknown values.
+# Select the 10 nearest neighbors to given case with missing values using algorithms such as KNN
+
+Step 4: Build the model using an algorithm on the training data set.
+
+For e.g. assume we use multiple linear regression to model the problem
+model1 = lm(responseVariable ~ ., data=sampleDataFrame)
+
+summary(model1)
+# This command gives us the results of linear regression. 
+
+plot(model1)
+# This command gives us a series of plots that we can use to understand the model.
+
+anova(model1)
+# This function will give us a sequential analysis of variance of the model fit. That is, the reductions in the residual sum of squares (the total error of the model) as each term of the formula is added in turn.
+
+# You can use backward elimination to remove less impactful predictors.
+
+model3 = step(model1) 
+# Here it is assumed that model1 includes all the predictors. step() uses AIC to remove predictors at each step and calculate AIC value at each step.
+
+# summary(model3)
+# If you dont see a considerable improvement in the R squared values, then probably the linearity assumptions for this model are not adequate. 
+# We need to use another technique.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
