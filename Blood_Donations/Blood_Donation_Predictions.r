@@ -84,6 +84,48 @@ leveneTest( blood_don_train$Total_Volume_Donated_cc, blood_don_train$Made_Donati
 leveneTest( blood_don_train$Months_since_First_Donation, blood_don_train$Made_Donation_in_March_2007 )
 # Levene's test is significant (p<0.01).Hence, the assumption of homogenity of variance has been violated.
 
+# Analyze the two groups of data separately.
+# Create 2 new datafarames for each group.
+donated_data = subset(blood_don_train,blood_don_train$Made_Donation_in_March_2007=="Donated")
+notdonated_data = subset(blood_don_train,blood_don_train$Made_Donation_in_March_2007=="Not_Donated")
+
+# Plot histograms for each predictor in the donated_data.
+hist(donated_data$Months_since_Last_Donation, prob=T)
+lines(density(donated_data$Months_since_Last_Donation))
+# Data is positively skewed.
+
+hist(donated_data$Number_of_Donations, prob=T)
+lines(density(donated_data$Number_of_Donations))
+# Data is positively skewed.
+
+hist(donated_data$Total_Volume_Donated_cc, prob=T)
+lines(density(donated_data$Total_Volume_Donated_cc))
+# Data is positively skewed.
+
+hist(donated_data$Months_since_First_Donation, prob=T)
+lines(density(donated_data$Months_since_First_Donation))
+# Data is positively skewed.
+
+# Plot histograms for each predictor in the notdonated_data.
+hist(notdonated_data$Months_since_Last_Donation, prob=T)
+lines(density(notdonated_data$Months_since_Last_Donation))
+# Data is positively skewed.
+
+hist(notdonated_data$Number_of_Donations, prob=T)
+lines(density(notdonated_data$Number_of_Donations))
+# Data is positively skewed.
+
+hist(notdonated_data$Total_Volume_Donated_cc, prob=T)
+lines(density(notdonated_data$Total_Volume_Donated_cc))
+# Data is positively skewed.
+
+hist(notdonated_data$Months_since_First_Donation, prob=T)
+lines(density(notdonated_data$Months_since_First_Donation))
+# Data is positively skewed.
+
+
+
+
 # Step 3: Build a statistical model using the training data set. Since, this is a classification problem, We will use logistic regression.
 blood_don_model.1 = glm(Made_Donation_in_March_2007~Months_since_Last_Donation+Number_of_Donations+Total_Volume_Donated_cc+Months_since_First_Donation, data=blood_don_train, family=binomial())
 
@@ -124,7 +166,7 @@ summary(blood_don_model.3)
 blood_don_test$predictedProbabilities <- predict(blood_don_model.2, newdata = blood_don_test, type = "response")
 
 	
-# If the predicted probability is >= 0.5, classify it as bad loan, else good loan.
+# If the predicted probability is >= 0.5, classify it as donated, else not donated.
 blood_don_test$prediction = ifelse(blood_don_test$predictedProbabilities>=0.4,1,0)
 blood_don_test$prediction = factor(blood_don_test$prediction, levels = c(0, 1))
 
@@ -500,12 +542,139 @@ write.csv(my_prediction_9, "my_prediction_9.csv", row.names=FALSE)
 # Error: 0.4478
 
 # Attempt No. 12
-# Perform bootstrapping
+# Use Linear Discriminant Algorithm  on the entire training dataset.
+library(MASS)
+blood_don_model.15 = lda(Made_Donation_in_March_2007~Months_since_Last_Donation+Total_Volume_Donated_cc+Months_since_First_Donation, data=blood_don_train, family=binomial())
+blood_don_model.15
+
+# Use the model to predict on test set
+output = predict(blood_don_model.15, newdata = blood_don_test)
+blood_don_test$predictedProbabilities = output$posterior[,"Donated"]
 
 
+# prepare for submission# 10. 
+my_prediction_10 = blood_don_test[,c("X","predictedProbabilities")] 
+submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
+colnames(my_prediction_10) = colnames(submission_format)
+write.csv(my_prediction_10, "my_prediction_10.csv", row.names=FALSE)
+
+# Error: 0.4559
+
+# Attempt No. 13
+# We know that Months_since_Last_Donation, Number_of_Donations  have some outliers. Let us remove those outliers and run the logistic regression model. 
+
+blood_don_train[blood_don_train$Months_since_Last_Donation>=60,]
+# row number: 386, 576
+
+blood_don_train[blood_don_train$Number_of_Donations>=40,]
+# row numbers: 1,9,387,389
+
+# Let us remove those outliers and run logistic regression again. 
+blood_don_train_no_out = blood_don_train[-c(1,9,386,387,389,576),]
+
+blood_don_model.16 = glm(Made_Donation_in_March_2007~Months_since_Last_Donation+Number_of_Donations+Months_since_First_Donation, data=blood_don_train_no_out, family=binomial())
+# Residual Deviance = 549.5
+
+# Use the model to predict on test set
+blood_don_test$predictedProbabilities = predict(blood_don_model.16, newdata = blood_don_test, type = "response")
 
 
+# prepare for submission# 11. 
+my_prediction_11 = blood_don_test[,c("X","predictedProbabilities")] 
+submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
+colnames(my_prediction_11) = colnames(submission_format)
+write.csv(my_prediction_11, "my_prediction_11.csv", row.names=FALSE)
 
+# Error: 0.4480
+
+# Attempt No. 14
+# Let us remove more records that have outliers in Months_since_Last_Donation, Number_of_Donations. We will run logistic regression again.
+
+blood_don_train[blood_don_train$Months_since_Last_Donation>=35,]
+# row number: 385, 386, 575, 576
+
+blood_don_train[blood_don_train$Number_of_Donations>=30,]
+# row number: 1, 9, 264, 387, 389, 398
+
+# Let us remove those outliers and run logistic regression again. 
+blood_don_train_no_out = blood_don_train[-c(1,9,264,385,386,387,389,398,575,576),]
+
+blood_don_model.17 = glm(Made_Donation_in_March_2007~Months_since_Last_Donation+Number_of_Donations+Months_since_First_Donation, data=blood_don_train_no_out, family=binomial())
+# Residual Deviance: 546.2. We can see that the residual deviance has reduced when compared to blood_don_model.16
+
+# Use the model to predict on test set
+blood_don_test$predictedProbabilities = predict(blood_don_model.17, newdata = blood_don_test, type = "response")
+
+# prepare for submission# 12. 
+my_prediction_12 = blood_don_test[,c("X","predictedProbabilities")] 
+submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
+colnames(my_prediction_12) = colnames(submission_format)
+write.csv(my_prediction_12, "my_prediction_12.csv", row.names=FALSE)
+
+# Error: 0.4519
+
+# Attempt No. 15
+# From the previous 2 attempts, we learnt that removing records with Months_since_Last_Donation >= 35 and Number_of_Donations>=30 didnt improve our model.
+# Hence let us stick to removing records that have  Months_since_Last_Donation>=60 and Number_of_Donations>=40.
+
+# Let us  derive a new column in the training set called avg_vol_donated_month = Total_Volume_Donated_cc / Number_of_Donations
+# In the new column, we can see that the average volume of blood donated by each person is 250.
+# This is true even for the blind test set. So, the newly derived column is useless. 
+
+# Let us apply linear regression instead of logistic regression
+
+
+blood_don_train[blood_don_train$Months_since_Last_Donation>=60,]
+# row number: 386, 576
+
+blood_don_train[blood_don_train$Number_of_Donations>=40,]
+# row numbers: 1,9,387,389
+
+# Let us remove those outliers and run logistic regression again. 
+blood_don_train_no_out = blood_don_train[-c(1,9,386,387,389,576),]
+
+set.seed(123)  #set seed to make the partition reproducible.
+trng_ind = sample(seq_len(nrow(blood_don_train_no_out)),size=450,replace=F)
+blood_don_set.trng = blood_don_train_no_out[trng_ind,]
+blood_don_set.test = blood_don_train_no_out[-trng_ind,]
+
+#check the proportion of bad loans in both training and test sets.
+ prop.table(table(blood_don_set.trng$Made_Donation_in_March_2007))
+ prop.table(table(blood_don_set.test$Made_Donation_in_March_2007))
+
+ # Build a linear regression model using training set data.
+blood_don_model.18 = lm(Made_Donation_in_March_2007~Months_since_Last_Donation+Number_of_Donations+Months_since_First_Donation, data=blood_don_set.trng)
+
+# Evaluate the model by testing it on the test set.
+output = predict(blood_don_model.18, newdata = blood_don_set.test)
+
+blood_don_set.test$predictedProbabilities  = ifelse(output > 1, 1, output)
+
+
+#  Find log loss
+# First create a separate column that contains 1s and 0s for Donated and Not_Donated respectively. 
+blood_don_set.test$actual = 0
+blood_don_set.test$actual[blood_don_set.test$Made_Donation_in_March_2007=="Donated"] = 1
+
+# calculate log loss for each case
+blood_don_set.test$logLoss = ( blood_don_set.test$actual*log(blood_don_set.test$predictedProbabilities)) + ( (1-blood_don_set.test$actual)*log(1-blood_don_set.test$predictedProbabilities) )
+
+# Average all the log losses.
+logloss = mean(blood_don_set.test$logLoss)*(-1)
+
+# logloss = 
+
+
+# Apply model on actual test set.
+output = predict(blood_don_model.18, newdata = blood_don_test)
+
+blood_don_test$predictedProbabilities = ifelse(output > 1, 1, output)
+
+# prepare for submission# 13. 
+my_prediction_13 = blood_don_test[,c("X","predictedProbabilities")] 
+submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
+colnames(my_prediction_13) = colnames(submission_format)
+write.csv(my_prediction_13, "my_prediction_13.csv", row.names=FALSE)
 
 
 
