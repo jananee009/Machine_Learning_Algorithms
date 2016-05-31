@@ -1,3 +1,6 @@
+# This file contains solutions to probability problems solved through simulation.
+
+
 # problem: One hundred people line up to board an airplane. Each has a boarding pass with
 # assigned seat. However, the first person to board has lost his boarding pass and takes a random
 # seat. After that, each person takes the assigned seat if it is unoccupied, and one of unoccupied
