@@ -691,6 +691,9 @@ write.csv(my_prediction_13, "my_prediction_13.csv", row.names=FALSE)
 
 # submission 13 was incorrectly done. 
 # Hence doing one more submission 
+
+output = predict(blood_don_model.18, newdata = blood_don_test)
+
 blood_don_test$predictedProbabilities = ifelse(output >= 1, 0.99, output)
 blood_don_test$predictedProbabilities = ifelse(output <= 0, 0.01, output)
 
