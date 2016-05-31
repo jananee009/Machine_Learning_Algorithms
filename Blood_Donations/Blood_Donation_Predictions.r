@@ -642,13 +642,24 @@ blood_don_set.test = blood_don_train_no_out[-trng_ind,]
  prop.table(table(blood_don_set.trng$Made_Donation_in_March_2007))
  prop.table(table(blood_don_set.test$Made_Donation_in_March_2007))
 
+ blood_don_set.trng$actual = 0
+ blood_don_set.trng$actual[blood_don_set.trng$Made_Donation_in_March_2007=="Donated"] = 1
+
+
+
+
  # Build a linear regression model using training set data.
-blood_don_model.18 = lm(Made_Donation_in_March_2007~Months_since_Last_Donation+Number_of_Donations+Months_since_First_Donation, data=blood_don_set.trng)
+blood_don_model.18 = lm(actual~Months_since_Last_Donation+Number_of_Donations+Months_since_First_Donation, data=blood_don_set.trng)
 
 # Evaluate the model by testing it on the test set.
 output = predict(blood_don_model.18, newdata = blood_don_set.test)
 
-blood_don_set.test$predictedProbabilities  = ifelse(output > 1, 1, output)
+blood_don_set.test$predictedProbabilities  = ifelse(output >= 1, 0.99, output)
+blood_don_set.test$predictedProbabilities  = ifelse(output <= 0, 0.01, output)
+
+# Check if there are any predicted probabilities > 1 or < 0
+blood_don_set.test[blood_don_set.test$predictedProbabilities > 1,]
+blood_don_set.test[blood_don_set.test$predictedProbabilities < 0,]
 
 
 #  Find log loss
@@ -656,25 +667,38 @@ blood_don_set.test$predictedProbabilities  = ifelse(output > 1, 1, output)
 blood_don_set.test$actual = 0
 blood_don_set.test$actual[blood_don_set.test$Made_Donation_in_March_2007=="Donated"] = 1
 
+
 # calculate log loss for each case
 blood_don_set.test$logLoss = ( blood_don_set.test$actual*log(blood_don_set.test$predictedProbabilities)) + ( (1-blood_don_set.test$actual)*log(1-blood_don_set.test$predictedProbabilities) )
 
 # Average all the log losses.
 logloss = mean(blood_don_set.test$logLoss)*(-1)
 
-# logloss = 
+# logloss = 0.54
 
 
 # Apply model on actual test set.
 output = predict(blood_don_model.18, newdata = blood_don_test)
 
-blood_don_test$predictedProbabilities = ifelse(output > 1, 1, output)
+blood_don_test$predictedProbabilities = ifelse(output >= 1, 1, output)
+
 
 # prepare for submission# 13. 
 my_prediction_13 = blood_don_test[,c("X","predictedProbabilities")] 
 submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
 colnames(my_prediction_13) = colnames(submission_format)
 write.csv(my_prediction_13, "my_prediction_13.csv", row.names=FALSE)
+
+# submission 13 was incorrectly done. 
+# Hence doing one more submission 
+blood_don_test$predictedProbabilities = ifelse(output >= 1, 0.99, output)
+blood_don_test$predictedProbabilities = ifelse(output <= 0, 0.01, output)
+
+# prepare for submission# 14. 
+my_prediction_14 = blood_don_test[,c("X","predictedProbabilities")] 
+submission_format = read.csv("BloodDonationSubmissionFormat.csv", check.names=FALSE)
+colnames(my_prediction_14) = colnames(submission_format)
+write.csv(my_prediction_14, "my_prediction_14.csv", row.names=FALSE)
 
 
 
