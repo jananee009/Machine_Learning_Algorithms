@@ -1,5 +1,5 @@
 # Problem Statement: The goal of this project is to build a model to correctly identify  bad loans. 
-# Data Source: Data for this project has been taken from the publibly available dataset at https://www.lendingclub.com/info/download-data.action.
+# Data Source: Data for this project has been taken from the publicly available dataset at https://www.lendingclub.com/info/download-data.action.
 # The 2007-2011 loan data has been used for analysis.
 # Approach: After cleaning and preparing the data for analysis, the dataset will be divided in to training set and test set. 
 # First, a logistic regression model will be built using the training data set.
